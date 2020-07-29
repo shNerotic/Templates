@@ -9,6 +9,7 @@
 
   <PropertyGroup Label="Build">
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
     <TreatWarningsAsErrors Condition="'$(TreatWarningsAsErrors)' == 'true'">true</TreatWarningsAsErrors>
   </PropertyGroup>
 
