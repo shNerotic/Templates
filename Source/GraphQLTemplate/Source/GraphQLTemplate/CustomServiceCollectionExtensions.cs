@@ -174,6 +174,18 @@ namespace GraphQLTemplate
                 // Add health checks for external dependencies here. See https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
                 .Services;
 #endif
+#if Authorization
+
+        /// <summary>
+        /// Add GraphQL authorization (See https://github.com/graphql-dotnet/authorization).
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <returns>The services with caching services added.</returns>
+        public static IServiceCollection AddCustomAuthorization(this IServiceCollection services) =>
+            services
+                .AddAuthorization(options => options
+                    .AddPolicy(AuthorizationPolicyName.Admin, x => x.RequireAuthenticatedUser()));
+#endif
 
         public static IServiceCollection AddCustomGraphQL(
             this IServiceCollection services,
@@ -182,6 +194,15 @@ namespace GraphQLTemplate
             services
                 .AddGraphQL(serviceProvider => SchemaBuilder.New()
                     .AddServices(serviceProvider)
+#if Authorization
+                    .AddAuthorizeDirectiveType()
+#endif
+                    .ModifyOptions(
+                        options =>
+                        {
+                            options.RemoveUnreachableTypes = true;
+                            options.UseXmlDocumentation = false;
+                        })
                     .EnableRelaySupport()
                     .SetSchema<MainSchema>()
                     .AddQueryType<QueryObject>()
@@ -199,26 +220,5 @@ namespace GraphQLTemplate
                 .AddInMemorySubscriptionProvider()
 #endif
                 .AddDataLoaderRegistry();
-#if Authorization
-
-        /// <summary>
-        /// Add GraphQL authorization (See https://github.com/graphql-dotnet/authorization).
-        /// </summary>
-        /// <param name="services">The services.</param>
-        /// <returns>The services with caching services added.</returns>
-        public static IServiceCollection AddCustomGraphQLAuthorization(this IServiceCollection services) =>
-            services;
-        // .AddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>()
-        // .AddTransient<IValidationRule, AuthorizationValidationRule>()
-        // .AddSingleton(
-        //     x =>
-        //     {
-        //         var authorizationSettings = new AuthorizationSettings();
-        //         authorizationSettings.AddPolicy(
-        //             AuthorizationPolicyName.Admin,
-        //             y => y.RequireClaim("role", "admin"));
-        //         return authorizationSettings;
-        //     });
-#endif
     }
 }
