@@ -213,6 +213,8 @@ namespace GraphQLTemplate
                             })
                         .EnableRelaySupport()
                         .AddDirectiveType<UpperDirectiveType>()
+                        .AddDirectiveType<IncludeDirectiveType>()
+                        .AddDirectiveType<SkipDirectiveType>()
                         .SetSchema<MainSchema>()
                         .AddQueryType<QueryObject>()
                         .AddMutationType<MutationObject>()
