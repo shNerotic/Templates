@@ -214,6 +214,7 @@ namespace GraphQLTemplate
                             })
                         .EnableRelaySupport()
                         .AddDirectiveType<UpperDirectiveType>()
+                        .AddDirectiveType<LowerDirectiveType>()
                         .AddDirectiveType<IncludeDirectiveType>()
                         .AddDirectiveType<SkipDirectiveType>()
                         .AddDirectiveType<ExportDirectiveType>()
