@@ -10,6 +10,8 @@ namespace GraphQLTemplate
     using GraphQLTemplate.Constants;
 #endif
     using GraphQLTemplate.Options;
+    using GraphQLTemplate.Schemas;
+    using GraphQLTemplate.Types;
     using HotChocolate;
     using HotChocolate.Subscriptions;
     using Microsoft.AspNetCore.Builder;
@@ -23,7 +25,6 @@ namespace GraphQLTemplate
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -184,18 +185,17 @@ namespace GraphQLTemplate
 #endif
                 .AddGraphQL(serviceProvider => SchemaBuilder.New()
                     .AddServices(serviceProvider)
-                    .AddQueryType(x => x.Name("Query"))
-                    .AddMutationType(x => x.Name("Mutation"))
+                    .SetSchema<MainSchema>()
+                    .AddQueryType<QueryObject>()
+                    // .AddMutationType<MutationObject>()
 #if Subscriptions
-                    .AddSubscriptionType(x => x.Name("Subscription"))
+                    // .AddSubscriptionType<SubscriptionObject>()
 #endif
-                    .AddType<CharacterQueries>()
-                    .AddType<ReviewQueries>()
-                    .AddType<ReviewMutations>()
-                    .AddType<ReviewSubscriptions>()
-                    .AddType<Human>()
-                    .AddType<Droid>()
-                    .AddType<Starship>()
+                    .AddType<EpisodeEnumeration>()
+                    .AddType<CharacterInterface>()
+                    .AddType<DroidObject>()
+                    .AddType<HumanObject>()
+                    // .AddType<HumanInputObject>()
                     .Create());
 #if Authorization
 
@@ -205,18 +205,18 @@ namespace GraphQLTemplate
         /// <param name="services">The services.</param>
         /// <returns>The services with caching services added.</returns>
         public static IServiceCollection AddCustomGraphQLAuthorization(this IServiceCollection services) =>
-            services
-                .AddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>()
-                .AddTransient<IValidationRule, AuthorizationValidationRule>()
-                .AddSingleton(
-                    x =>
-                    {
-                        var authorizationSettings = new AuthorizationSettings();
-                        authorizationSettings.AddPolicy(
-                            AuthorizationPolicyName.Admin,
-                            y => y.RequireClaim("role", "admin"));
-                        return authorizationSettings;
-                    });
+            services;
+        // .AddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>()
+        // .AddTransient<IValidationRule, AuthorizationValidationRule>()
+        // .AddSingleton(
+        //     x =>
+        //     {
+        //         var authorizationSettings = new AuthorizationSettings();
+        //         authorizationSettings.AddPolicy(
+        //             AuthorizationPolicyName.Admin,
+        //             y => y.RequireClaim("role", "admin"));
+        //         return authorizationSettings;
+        //     });
 #endif
     }
 }
