@@ -66,8 +66,4 @@
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="3.1.0" Condition="'$(ApplicationInsights)' == 'true'" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Resolvers\" />
-  </ItemGroup>
-
 </Project>
