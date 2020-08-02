@@ -14,6 +14,9 @@ namespace GraphQLTemplate
     using GraphQLTemplate.Schemas;
     using GraphQLTemplate.Types;
     using HotChocolate;
+#if PersistedQueries
+    using HotChocolate.Execution;
+#endif
     using HotChocolate.Execution.Configuration;
     using HotChocolate.Subscriptions;
     using HotChocolate.Types;
@@ -28,6 +31,9 @@ namespace GraphQLTemplate
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
+#if PersistedQueries
+    using StackExchange.Redis;
+#endif
 
     /// <summary>
     /// <see cref="IServiceCollection"/> extension methods which extend ASP.NET Core services.
@@ -100,6 +106,9 @@ namespace GraphQLTemplate
                 .ConfigureAndValidateSingleton<HostFilteringOptions>(configuration.GetSection(nameof(ApplicationOptions.HostFiltering)))
 #endif
                 .ConfigureAndValidateSingleton<QueryExecutionOptions>(configuration.GetSection(nameof(ApplicationOptions.GraphQL)))
+#if PersistedQueries
+                .ConfigureAndValidateSingleton<RedisOptions>(configuration.GetSection(nameof(ApplicationOptions.Redis)))
+#endif
                 .ConfigureAndValidateSingleton<KestrelServerOptions>(configuration.GetSection(nameof(ApplicationOptions.Kestrel)));
 #if ResponseCompression
 
@@ -189,11 +198,31 @@ namespace GraphQLTemplate
                 .AddAuthorization(options => options
                     .AddPolicy(AuthorizationPolicyName.Admin, x => x.RequireAuthenticatedUser()));
 #endif
+#if PersistedQueries
 
+        public static IServiceCollection AddCustomRedis(
+            this IServiceCollection services,
+            IConfiguration configuration) =>
+            services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(
+                     configuration
+                        .GetSection(nameof(ApplicationOptions.Redis))
+                        .Get<RedisOptions>()
+                        .ConnectionString));
+#endif
         public static IServiceCollection AddCustomGraphQL(
             this IServiceCollection services,
             IConfiguration configuration) =>
             services
+                .AddDataLoaderRegistry()
+#if Subscriptions
+                .AddInMemorySubscriptionProvider()
+#endif
+#if PersistedQueries
+                 .AddQueryExecutor(queryExecutionBuilder => queryExecutionBuilder
+                     .AddSha256DocumentHashProvider()
+                     .UseActivePersistedQueryPipeline())
+                 .AddRedisQueryStorage(x => x.GetRequiredService<ConnectionMultiplexer>().GetDatabase())
+#endif
                 .AddGraphQL(
                     serviceProvider => SchemaBuilder.New()
                         .AddServices(serviceProvider)
@@ -231,10 +260,6 @@ namespace GraphQLTemplate
                         .Create(),
                     configuration
                         .GetSection(nameof(ApplicationOptions.GraphQL))
-                        .Get<QueryExecutionOptions>())
-#if Subscriptions
-                .AddInMemorySubscriptionProvider()
-#endif
-                .AddDataLoaderRegistry();
+                        .Get<QueryExecutionOptions>());
     }
 }

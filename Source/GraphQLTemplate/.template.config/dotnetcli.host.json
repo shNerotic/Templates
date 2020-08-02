@@ -46,6 +46,9 @@
     "Subscriptions": {
       "longName": "subscriptions"
     },
+    "PersistedQueries": {
+      "longName": "persisted-queries"
+    },
     "ForwardedHeaders": {
       "longName": "forwarded-headers"
     },
